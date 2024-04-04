@@ -31,21 +31,36 @@ RCM_EXTS = [
 #
 #######################################################################################################
 def createDirectories(name):
+    rcm_outputs_dir = "./compasses"
+    final_outputs_dir = "./output"
 
-    rcm_path = "compasses\\" + name
-    out_path = "output\\" + name
-
-    if not os.path.exists(rcm_path):
-        os.mkdir(rcm_path)
-        print("RCM folder for %s data created" % rcm_path)
+    # Create root directories for RCM outputs
+    if not os.path.exists(rcm_outputs_dir):
+        os.mkdir(rcm_outputs_dir)
+        print("RCM folder created")
     else:
-        print("RCM folder for %s data already exists" % rcm_path)
-
-    if not os.path.exists(out_path):
-        os.mkdir(out_path)
-        print("Output folder for %s data created" % out_path)
+        print("RCM folder already exists")
+    
+    if not os.path.exists(final_outputs_dir):
+        os.mkdir(final_outputs_dir)
+        print("Final output folder created")
     else:
-        print("Output folder for %s data already exists" % out_path)
+        print("Final output folder already exists")
+    
+    img_rcm_path = rcm_outputs_dir + "/" + name
+    img_out_path = final_outputs_dir + "/" + name
+
+    if not os.path.exists(img_rcm_path):
+        os.mkdir(img_rcm_path)
+        print("RCM folder for %s data created" % name)
+    else:
+        print("RCM folder for %s data already exists" % name)
+
+    if not os.path.exists(img_out_path):
+        os.mkdir(img_out_path)
+        print("Final output folder for %s data created" % name)
+    else:
+        print("Final output folder for %s data already exists" % name)
 
 #######################################################################################################
 #
@@ -61,7 +76,7 @@ def generateRcmOutputs(name, grads, exts=RCM_EXTS):
 
     # !! CONFIIGURE FILE TYPE HERE !!
     file_type = ".png"
-    file_path = "compasses\\" + name
+    file_path = "compasses/" + name
 
     # Saving numpy file
     np_path = os.path.join(file_path, name + "_rcm_outputs.npy")
@@ -113,7 +128,7 @@ def detectEdge(img, name):
     img_edged = np.sum(gradients, axis = 0)
 
     # write image to final folder
-    output_f = "output\\" + name
+    output_f = "output/" + name
 
     # Save np
     np_path = os.path.join(output_f, name + "_final_output.npy")
@@ -145,7 +160,7 @@ def detectEdgeAbs(img, name):
     img_edged = np.sum(gradients, axis = 0)
 
     # write image to final folder
-    output_f = "output\\" + name
+    output_f = "output/" + name
 
     # Save np
     np_path = os.path.join(output_f, name + "_final_output.npy")
@@ -182,7 +197,7 @@ def detectEdgeMax(img, name, RCM=RCM_KERNELS):
       np.maximum(img_edged, filtered, img_edged)
 
     # write image to final folder
-    output_f = "output\\" + name
+    output_f = "output/" + name
 
     # Save np
     np_path = os.path.join(output_f, name + "_final_output.npy")
