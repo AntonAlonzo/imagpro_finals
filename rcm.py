@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import opencv as cv2
+import cv2 as cv
 
 # "Constant" declaration of Robinsons Compass Mask kernels
 RCM = [
@@ -15,9 +15,9 @@ RCM = [
 ]
 
 # Function to create a folder to hold the different compass outputs for a single image input
-def createDirectory(dataName):
+def createDirectory(name):
 
-    path = "./compasses/" + dataName
+    path = "./compasses/" + name
 
     if not os.path.exists(path):
         os.mkdir(path)
@@ -25,8 +25,8 @@ def createDirectory(dataName):
     else:
         print("Folder for %s data already exists" % path)
 
-def applyMasks(img, RCM=RCM):
-    gradient_images = [cv2.filter2D(img, -1, mask) for mask in RCM]
+def applyMasks(img, name, RCM=RCM):
+    gradient_images = [cv.filter2D(img, -1, mask) for mask in RCM]
     absolute_gradients = [np.abs(gradient) for gradient in gradient_images]
 
     # TODO: use createDirectory to make folder to store all compass data of the img
