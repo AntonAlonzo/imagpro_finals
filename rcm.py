@@ -1,3 +1,6 @@
+# Plate Number Recognition System using Robinsons Compass Mask Edge Detection | RCM Header File
+# IMAGPRO | Alonzo, Hernandez, Solis, Susada
+
 import os
 import numpy as np
 import cv2 as cv
@@ -26,14 +29,11 @@ RCM_EXTS = [
 #   Parameters:
 #       name    file name of data (to become folder name)
 #
-#   Returns:
-#       file paths
-#
 #######################################################################################################
-def createDirectory(name):
+def createDirectories(name):
 
-    rcm_path = "compasses/" + name
-    out_path = "final/" + name
+    rcm_path = "compasses\\" + name
+    out_path = "output\\" + name
 
     if not os.path.exists(rcm_path):
         os.mkdir(rcm_path)
@@ -41,7 +41,11 @@ def createDirectory(name):
     else:
         print("RCM folder for %s data already exists" % rcm_path)
 
-    return rcm_path, out_path
+    if not os.path.exists(out_path):
+        os.mkdir(out_path)
+        print("Output folder for %s data created" % out_path)
+    else:
+        print("Output folder for %s data already exists" % out_path)
 
 #######################################################################################################
 #
@@ -50,23 +54,24 @@ def createDirectory(name):
 #
 #   Parameters:
 #       name    file name of image (without extension)
-#       path    directory to upload output
 #       abs     absolute gradients of RCM kernel output
 #
 #######################################################################################################
-def generateRcmOutputs(name, path, abs, exts=RCM_EXTS):
+def generateRcmOutputs(name, grads, exts=RCM_EXTS):
 
     # !! CONFIIGURE FILE TYPE HERE !!
     file_type = ".png"
+    file_path = "compasses\\" + name
 
     # Saving numpy file
-    np.save(os.path.join(path, name + "_rcm_outputs.npy"), abs)
+    np_path = os.path.join(file_path, name + "_rcm_outputs.npy")
+    np.save(np_path, grads)
+    print("Generated array file: %s" % np_path)
     
-    for i in range(len(abs)):
-       img_path = os.path.join(path, name + "_" + exts[i] + file_type)
-       cv.imwrite(img_path)
-    
-    
+    for i in range(len(grads)):
+       img_path = os.path.join(file_path, name + "_" + exts[i] + file_type)
+       cv.imwrite(img_path, grads[i])
+       print("Generated image: %s" % img_path)
 
 #######################################################################################################
 #
@@ -82,21 +87,18 @@ def generateRcmOutputs(name, path, abs, exts=RCM_EXTS):
 #
 #######################################################################################################
 def applyMasks(img, name, RCM=RCM_KERNELS):
-    print(RCM)
-    gradient_images = [cv.filter2D(img, -1, mask) for mask in RCM]
-    absolute_gradients = [np.abs(gradient) for gradient in gradient_images]
 
-    # Create unique directory for image to hold RCM indiv data
-    rcm_path, _ = createDirectory(name)
+    filtered_images = [cv.filter2D(img, -1, mask) for mask in RCM]
+    gradients = [np.abs(gradient) for gradient in filtered_images]
 
     # Generate image files of RCM kernel output
-    generateRcmOutputs(name, rcm_path, absolute_gradients)
+    generateRcmOutputs(name, gradients)
 
-    return absolute_gradients
+    return gradients
     
 #######################################################################################################
 #
-#   Function to generate the final edge-detected image data
+#   The main function...to generate the final edge-detected image data
 #
 #   Parameters:
 #       img     image data
@@ -107,17 +109,90 @@ def applyMasks(img, name, RCM=RCM_KERNELS):
 #######################################################################################################
 def detectEdge(img, name):
 
-    abs_gradients = applyMasks(img)
-    img_edged = np.sum(abs_gradients, axis = 0)
+    gradients = applyMasks(img, name)
+    img_edged = np.sum(gradients, axis = 0)
 
-    # TODO: write image to final folder
-    output_f = "output/" + name
-    os.makedirs(output_f, exist_ok=True)
+    # write image to final folder
+    output_f = "output\\" + name
 
     # Save np
-    np.save(os.path.join(output_f, name + "_final_output.npy"), img_edged)
+    np_path = os.path.join(output_f, name + "_final_output.npy")
+    np.save(np_path, img_edged)
+    print("Generated array file: %s" % np_path)
 
     # Save image
-    cv.imwrite(os.path.join(output_f, name + "_final_output.png"), img_edged)
-    
+    file_type = ".png"
+    img_path = os.path.join(output_f, name + "_final_output" + file_type)
+    cv.imwrite(img_path, img_edged.astype(np.uint8))
+    print("Generated image: %s" % img_path)
+
     return img_edged 
+
+#######################################################################################################
+#
+#   The main function...to generate the final edge-detected image data
+#
+#   Parameters:
+#       img     image data
+#
+#   Returns:
+#       Post-processed image data
+#
+#######################################################################################################
+def detectEdgeAbs(img, name):
+
+    gradients = applyMasks(img, name)
+    img_edged = np.sum(gradients, axis = 0)
+
+    # write image to final folder
+    output_f = "output\\" + name
+
+    # Save np
+    np_path = os.path.join(output_f, name + "_final_output.npy")
+    np.save(np_path, img_edged)
+    print("Generated array file: %s" % np_path)
+
+    # Save image
+    file_type = ".png"
+    img_path = os.path.join(output_f, name + "_final_output" + file_type)
+    cv.imwrite(img_path, img_edged.astype(np.uint8))
+    print("Generated image: %s" % img_path)
+
+    return img_edged
+
+#######################################################################################################
+#
+#   Another version of the main function...to generate the final edge-detected image data
+#
+#   Parameters:
+#       img     image data
+#       name    file name of image (without extension)
+#
+#   Returns:
+#       Post-processed image data
+#
+#######################################################################################################
+def detectEdgeMax(img, name, RCM=RCM_KERNELS):
+
+    img_edged = np.zeros_like(img)
+    for mask in RCM:
+      filtered = cv.filter2D(img, -1, mask)
+      # Perform edge detection operation enhancement
+      # by combining the best resulting filtered_images into one
+      np.maximum(img_edged, filtered, img_edged)
+
+    # write image to final folder
+    output_f = "output\\" + name
+
+    # Save np
+    np_path = os.path.join(output_f, name + "_final_output.npy")
+    np.save(np_path, img_edged)
+    print("Generated array file: %s" % np_path)
+
+    # Save image
+    file_type = ".png"
+    img_path = os.path.join(output_f, name + "_final_output" + file_type)
+    cv.imwrite(img_path, img_edged)
+    print("Generated image: %s" % img_path)
+
+    return img_edged
