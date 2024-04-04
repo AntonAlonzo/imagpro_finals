@@ -3,7 +3,7 @@ import numpy as np
 import cv2 as cv
 
 # "Constant" declaration of Robinsons Compass Mask kernels
-RCM = [
+RCM_KERNELS = [
     np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]),  # East
     np.array([[0, 1, 2], [-1, 0, 1], [-2, -1, 0]]),  # South East
     np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]]),  # South
@@ -14,26 +14,95 @@ RCM = [
     np.array([[-2, -1, 0], [-1, 0, 1], [0, 1, 2]])   # North East
 ]
 
-# Function to create a folder to hold the different compass outputs for a single image input
+# "Constant" declaration of file name suffixes for RCM output
+RCM_EXTS = [
+    "E", "SE", "S", "SW", "W", "NW", "N", "NE"
+]
+
+#######################################################################################################
+#
+#   Function to create a folder to hold the different outputs of an input image
+#
+#   Parameters:
+#       name    file name of data (to become folder name)
+#
+#   Returns:
+#       file paths
+#
+#######################################################################################################
 def createDirectory(name):
 
-    path = "./compasses/" + name
+    rcm_path = "compasses/" + name
+    out_path = "final/" + name
 
-    if not os.path.exists(path):
-        os.mkdir(path)
-        print("Folder for %s data created" % path)
+    if not os.path.exists(rcm_path):
+        os.mkdir(rcm_path)
+        print("RCM folder for %s data created" % rcm_path)
     else:
-        print("Folder for %s data already exists" % path)
+        print("RCM folder for %s data already exists" % rcm_path)
 
-def applyMasks(img, name, RCM=RCM):
+    return rcm_path, out_path
+
+#######################################################################################################
+#
+#   Function to write eight (8) different image files representing the different RCM kernel output
+#   for a specfic image
+#
+#   Parameters:
+#       name    file name of image (without extension)
+#       path    directory to upload output
+#       abs     absolute gradients of RCM kernel output
+#
+#######################################################################################################
+def generateRcmOutputs(name, path, abs, exts=RCM_EXTS):
+
+    # !! CONFIIGURE FILE TYPE HERE !!
+    file_type = ".png"
+    
+    for i in range(len(abs)):
+        img = path + name + "_" + exts[i] + file_type
+        cv.imwrite(img)
+    
+    
+
+#######################################################################################################
+#
+#   Function to apply the RCM kernels to the image
+#
+#   Parameters:
+#       img     image data
+#       name    file name of data (without extension)
+#       RCM     constantly set RCM
+#
+#   Returns:
+#       Absolute gradients of the kernel outputs
+#
+#######################################################################################################
+def applyMasks(img, name, RCM=RCM_KERNELS):
+    print(RCM)
     gradient_images = [cv.filter2D(img, -1, mask) for mask in RCM]
     absolute_gradients = [np.abs(gradient) for gradient in gradient_images]
 
-    # TODO: use createDirectory to make folder to store all compass data of the img
+    # Create unique directory for image to hold RCM indiv data
+    rcm_path, _ = createDirectory(name)
+
+    # Generate image files of RCM kernel output
+    generateRcmOutputs(name, rcm_path, absolute_gradients)
+    
 
     return absolute_gradients
     
-
+#######################################################################################################
+#
+#   Function to generate the final edge-detected image data
+#
+#   Parameters:
+#       img     image data
+#
+#   Returns:
+#       Post-processed image data
+#
+#######################################################################################################
 def detectEdge(img):
 
     abs_gradients = applyMasks(img)
