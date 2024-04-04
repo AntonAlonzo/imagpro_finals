@@ -58,10 +58,13 @@ def generateRcmOutputs(name, path, abs, exts=RCM_EXTS):
 
     # !! CONFIIGURE FILE TYPE HERE !!
     file_type = ".png"
+
+    # Saving numpy file
+    np.save(os.path.join(path, name + "_rcm_outputs.npy"), abs)
     
     for i in range(len(abs)):
-        img = path + name + "_" + exts[i] + file_type
-        cv.imwrite(img)
+       img_path = os.path.join(path, name + "_" + exts[i] + file_type)
+       cv.imwrite(img_path)
     
     
 
@@ -88,7 +91,6 @@ def applyMasks(img, name, RCM=RCM_KERNELS):
 
     # Generate image files of RCM kernel output
     generateRcmOutputs(name, rcm_path, absolute_gradients)
-    
 
     return absolute_gradients
     
@@ -103,11 +105,19 @@ def applyMasks(img, name, RCM=RCM_KERNELS):
 #       Post-processed image data
 #
 #######################################################################################################
-def detectEdge(img):
+def detectEdge(img, name):
 
     abs_gradients = applyMasks(img)
     img_edged = np.sum(abs_gradients, axis = 0)
 
     # TODO: write image to final folder
+    output_f = "output/" + name
+    os.makedirs(output_f, exist_ok=True)
+
+    # Save np
+    np.save(os.path.join(output_f, name + "_final_output.npy"), img_edged)
+
+    # Save image
+    cv.imwrite(os.path.join(output_f, name + "_final_output.png"), img_edged)
     
     return img_edged 
