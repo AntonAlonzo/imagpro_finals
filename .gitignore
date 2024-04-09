@@ -1,3 +1,4 @@
 __pycache__/*
 compasses/*
 output/*
+tests/runs/*
