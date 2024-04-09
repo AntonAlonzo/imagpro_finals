@@ -5,6 +5,8 @@ import os
 import numpy as np
 import cv2 as cv
 
+vid = cv.VideoCapture(1)
+
 while (True):
     ret, frame = vid.read()
     
