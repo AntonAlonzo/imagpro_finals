@@ -101,13 +101,14 @@ def generateRcmOutputs(name, grads, exts=RCM_EXTS):
 #       Absolute gradients of the kernel outputs
 #
 #######################################################################################################
-def applyMasks(img, name, RCM=RCM_KERNELS):
+def applyMasks(img, name=None, RCM=RCM_KERNELS):
 
     filtered_images = [cv.filter2D(img, -1, mask) for mask in RCM]
     gradients = [np.abs(gradient) for gradient in filtered_images]
 
     # Generate image files of RCM kernel output
-    generateRcmOutputs(name, gradients)
+    if name is not None:
+        generateRcmOutputs(name, gradients)
 
     return gradients
     
@@ -154,24 +155,25 @@ def detectEdge(img, name):
 #       Post-processed image data
 #
 #######################################################################################################
-def detectEdgeAbs(img, name):
+def detectEdgeAbs(img, name=None):
 
     gradients = applyMasks(img, name)
     img_edged = np.sum(gradients, axis = 0)
 
-    # write image to final folder
-    output_f = "output/" + name
+    if name is not None:
+        # write image to final folder
+        output_f = "output/" + name
 
-    # Save np
-    np_path = os.path.join(output_f, name + "_final_output.npy")
-    np.save(np_path, img_edged)
-    print("Generated array file: %s" % np_path)
+        # Save np
+        np_path = os.path.join(output_f, name + "_final_output.npy")
+        np.save(np_path, img_edged)
+        print("Generated array file: %s" % np_path)
 
-    # Save image
-    file_type = ".png"
-    img_path = os.path.join(output_f, name + "_final_output" + file_type)
-    cv.imwrite(img_path, img_edged.astype(np.uint8))
-    print("Generated image: %s" % img_path)
+        # Save image
+        file_type = ".png"
+        img_path = os.path.join(output_f, name + "_final_output" + file_type)
+        cv.imwrite(img_path, img_edged.astype(np.uint8))
+        print("Generated image: %s" % img_path)
 
     return img_edged
 
@@ -187,7 +189,7 @@ def detectEdgeAbs(img, name):
 #       Post-processed image data
 #
 #######################################################################################################
-def detectEdgeMax(img, name, RCM=RCM_KERNELS):
+def detectEdgeMax(img, name=None, RCM=RCM_KERNELS):
 
     img_edged = np.zeros_like(img)
     for mask in RCM:
@@ -196,31 +198,33 @@ def detectEdgeMax(img, name, RCM=RCM_KERNELS):
       # by combining the best resulting filtered_images into one
       np.maximum(img_edged, filtered, img_edged)
 
-    # write image to final folder
-    output_f = "output/" + name
+    if name is not None:
+        # write image to final folder
+        output_f = "output/" + name
 
-    # Save np
-    np_path = os.path.join(output_f, name + "_final_output.npy")
-    np.save(np_path, img_edged)
-    print("Generated array file: %s" % np_path)
+        # Save np
+        np_path = os.path.join(output_f, name + "_final_output.npy")
+        np.save(np_path, img_edged)
+        print("Generated array file: %s" % np_path)
 
-    # Save image
-    file_type = ".png"
-    img_path = os.path.join(output_f, name + "_final_output" + file_type)
-    cv.imwrite(img_path, img_edged)
-    print("Generated image: %s" % img_path)
+        # Save image
+        file_type = ".png"
+        img_path = os.path.join(output_f, name + "_final_output" + file_type)
+        cv.imwrite(img_path, img_edged)
+        print("Generated image: %s" % img_path)
 
     return img_edged
 
-def cannyEdge(img, name):
+def cannyEdge(img, name=None, lower_threshold=50, upper_threshold=150):
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-    edges = cv.Canny(gray_img, 50, 150)
+    edges = cv.Canny(gray_img, lower_threshold, upper_threshold)
 
-    output_folder = "output/" + name
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-    cv.imwrite(os.path.join(output_folder, name + "_canny_edges.png"), edges)
+    if name is not None:
+        output_folder = "output/" + name
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+        cv.imwrite(os.path.join(output_folder, name + "_canny_edges.png"), edges)
     
     return edges
 
