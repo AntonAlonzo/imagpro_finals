@@ -101,8 +101,10 @@ def get_configs():
         if _CONFIGS['conf'] < 0.01: _CONFIGS['conf'] = 0.01
         elif _CONFIGS['conf'] > 1.0: _CONFIGS['conf'] = 1.0
     if args.edge_detec:
-        if is_int(args.edge_detec): _CONFIGS['edge_detec'] = int(args.edge_detec)
-        if _CONFIGS['edge_detec'] < 0 or _CONFIGS['edge_detec'] > 2: raise Exception('Invalid Edge detection algorithm')
+        if is_int(args.edge_detec): 
+            _CONFIGS['edge_detec'] = int(args.edge_detec)
+            if _CONFIGS['edge_detec'] < 0 or _CONFIGS['edge_detec'] > 2: 
+                raise Exception('Invalid Edge detection algorithm')
     if args.live:
         _CONFIGS['live'] = args.live
     if args.execute:

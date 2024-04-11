@@ -3,7 +3,7 @@ import cv2
 # import argparse
 import time
 from datetime import datetime
-from rcm import detectEdgeMax, detectEdgeAbs
+from rcm import detectEdgeMax, detectEdgeAbs, cannyEdge
 from plate_recognition import read_license_plate
 from data_interpolation import perform_data_interpolation
 from data_visualization import visualize_data, draw_license_plate_boundary_box, display_label, display_text
@@ -72,7 +72,7 @@ def setup():
     # 0.3) INITIALIZE EDGE DETECTION ALGORITHM TO BE USED
     if ed_alg_num == 0: detect_edge = detectEdgeMax
     elif ed_alg_num == 1: detect_edge = detectEdgeAbs
-    else: pass # TODO: Add Canny edge detection here
+    elif ed_alg_num == 2: detect_edge = cannyEdge
     # 0.4) START-UP VIDEO CAPTURE DEVICE
     print("This is source:", source)
     cap = cv2.VideoCapture(source)

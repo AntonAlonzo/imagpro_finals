@@ -215,15 +215,16 @@ def detectEdgeMax(img, name=None, RCM=RCM_KERNELS):
 
     return img_edged
 
-def cannyEdge(img, name):
+def cannyEdge(img, name=None, lower_threshold=50, upper_threshold=150):
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-    edges = cv.Canny(gray_img, 50, 150)
+    edges = cv.Canny(gray_img, lower_threshold, upper_threshold)
 
-    output_folder = "output/" + name
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-    cv.imwrite(os.path.join(output_folder, name + "_canny_edges.png"), edges)
+    if name is not None:
+        output_folder = "output/" + name
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+        cv.imwrite(os.path.join(output_folder, name + "_canny_edges.png"), edges)
     
     return edges
 
