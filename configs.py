@@ -80,11 +80,12 @@ def get_configs():
     # Parse arguments
     args = parser.parse_args()
     if args.source:
-        if is_int(args.source): _CONFIGS['source'] = int(args.source)
-        elif _CONFIGS['source'] == 0: 
-            _CONFIGS['img_sz'] = (480, 640) # default size
-        elif _CONFIGS['source'] == 1: 
-            _CONFIGS['img_sz'] = (736, 1280) # default size
+        if is_int(args.source):
+            _CONFIGS['source'] = int(args.source)
+            if _CONFIGS['source'] == 0: 
+                _CONFIGS['img_sz'] = (480, 640) # default size
+            elif _CONFIGS['source'] == 1: 
+                _CONFIGS['img_sz'] = (736, 1280) # default size
         else: _CONFIGS['source'] = args.source
     if args.fps:
         _CONFIGS['fps'] = float(args.fps)
