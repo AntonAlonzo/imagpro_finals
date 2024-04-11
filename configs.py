@@ -12,30 +12,30 @@ VIDEO_OUTPUTS_DIR = OUTPUTS_DIR + 'videos/'
 
 _KEYS = [
     'source',
+    'fps',
     'label',
     'model',
     'img_sz',
     'conf',
     'edge_detec',
-    'save_to_csv', 
-    'save_to_frames',
-    'save_to_images',
-    'save_to_videos',
+    'live',
+    'execute',
+    'record',
     'debug'
 ]
 
 # Default configs
 _CONFIGS = {
     'source': 1, # external web cam
+    'fps': 20.0,
     'label': 'test',
     'model': MODELS_DIR + 'yolov8n-oiv7.pt',
     'img_sz': (736, 1280),
     'conf': 0.1,
     'edge_detec': 0,        # 0 - Max RobComp, 1 - Abs RobComp, 3 - Canny
-    'save_to_csv': True, 
-    'save_to_frames': False,
-    'save_to_images': False,
-    'save_to_videos': False,
+    'live': False,
+    'execute': False,
+    'record': False,
     'debug': 0              # 0 - No debug, 1 - Image debug, 2 - Video debug
 }
 
@@ -46,9 +46,10 @@ def get_configs():
     # Fetch arguments
     parser = argparse.ArgumentParser(description="License Plate Recognition Configuration")
     parser.add_argument("--source", help="Source of the input")
+    parser.add_argument("--fps", help="FPS setting of camera")
     parser.add_argument("--label", help="Label of the input and output")
     parser.add_argument("--model", help="Model to be used for plate detection and tracking")
-    parser.add_argument("--img-sz", help="Input Frame/Image size")
+    parser.add_argument("--img-sz", help="Input Frame/Image size. (height, width)")
     parser.add_argument("--conf", help="Confidence level of plate detection")
     parser.add_argument(
         "--edge-detec", 
@@ -56,24 +57,19 @@ def get_configs():
         help="Edge detection algorithm: 0 - Max RobComp, 1 - Abs RobComp, 3 - Canny"
     )
     parser.add_argument(
-        "-c", "--save-to-csv",
+        "-l", "--live",
         action="store_true",
-        help="Save results to a CSV file under the `%s` directory" % (CSV_OUTPUTS_DIR)
+        help="Perform License Plate Recognition on live webcam"
     )
     parser.add_argument(
-        "-f", "--save-to-frames",
+        "-e", "--execute",
         action="store_true",
-        help="Save results per frame under the `%s` directory" % (FRAMES_OUTPUTS_DIR)
+        help="Perform License Plate Recognition on a pre-recorded video"
     )
     parser.add_argument(
-        "-i", "--save-to-images",
+        "-r", "--record",
         action="store_true",
-        help="Save resulting image under the `%s` directory" % (IMAGES_OUTPUTS_DIR)
-    )
-    parser.add_argument(
-        "-v", "--save-to-videos",
-        action="store_true",
-        help="Save resulting video under the `%s` directory" % (VIDEO_OUTPUTS_DIR)
+        help="Record or collect sample data"
     )
     parser.add_argument(
         "-d", "--debug",
@@ -85,8 +81,13 @@ def get_configs():
     args = parser.parse_args()
     if args.source:
         if is_int(args.source): _CONFIGS['source'] = int(args.source)
-        if _CONFIGS['source'] == 0: _CONFIGS['img_sz'] = (480, 640) # default size
-        if _CONFIGS['source'] == 1: _CONFIGS['img_sz'] = (736, 1280) # default size
+        if _CONFIGS['source'] == 0: 
+            _CONFIGS['img_sz'] = (480, 640) # default size
+
+        if _CONFIGS['source'] == 1: 
+            _CONFIGS['img_sz'] = (736, 1280) # default size
+    if args.fps:
+        _CONFIGS['fps'] = float(args.fps)
     if args.label:
         _CONFIGS['label'] = args.label
     if args.model: _CONFIGS['model'] = MODELS_DIR + args.model
@@ -102,18 +103,15 @@ def get_configs():
     if args.edge_detec:
         if is_int(args.edge_detec): _CONFIGS['edge_detec'] = int(args.edge_detec)
         if _CONFIGS['edge_detec'] < 0 or _CONFIGS['edge_detec'] > 2: raise Exception('Invalid Edge detection algorithm')
-    
+    if args.live:
+        _CONFIGS['live'] = args.live
+    if args.execute:
+        _CONFIGS['execute'] = args.execute
+    if args.record:
+        _CONFIGS['record'] = args.record
     if args.debug:
         if is_int(args.debug): _CONFIGS['debug'] = int(args.debug)
         if _CONFIGS['debug'] < 0 or _CONFIGS['debug'] > 2: raise Exception('Invalid debug mode')
-    if args.save_to_csv:
-        _CONFIGS['save_to_csv'] = args.save_to_csv
-    if args.save_to_frames:
-        _CONFIGS['save_to_frames'] = args.save_to_frames
-    if args.save_to_images:
-        _CONFIGS['save_to_images'] = args.save_to_images
-    if args.save_to_videos:
-        _CONFIGS['save_to_videos'] = args.save_to_videos
     return _CONFIGS
 
 

@@ -1,7 +1,6 @@
 import csv
 import numpy as np
 from scipy.interpolate import interp1d
-from main import csv_filename
 
 def interpolate_captured_data(data):
     # 1.0) EXTRACT NECESSARY DATA FROM EACH COLUMN OF EACH ROW
@@ -52,9 +51,10 @@ def interpolate_captured_data(data):
         for i in range(len(lp_bboxes_interpolated)):
             frame_num = first_frame_number + i
             row = {}
-            row['frame_num'] = {}
+            row['frame_num'] = str(frame_num)
             row['lp_id'] = str(lp_id)
-            row['license_plate_bbox'] = ' '.join(map(str, lp_bboxes_interpolated))
+            row['license_plate_bbox'] = ' '.join(map(str, lp_bboxes_interpolated[i]))
+            
 
             if str(frame_num) not in frame_numbers:
                 # Imputed row, set the following fields to 0
@@ -66,7 +66,7 @@ def interpolate_captured_data(data):
                 original_row = [
                     p for p in data
                     if int(p['frame_num']) == frame_num
-                    and int(float(p['lp_id']))
+                    and int(float(p['lp_id'])) == int(float(lp_id))
                 ][0]
                 row['license_plate_bbox_score'] = original_row['license_plate_bbox_score'] if 'license_plate_bbox_score' in original_row else '0'
                 row['license_number'] = original_row['license_number'] if 'license_number' in original_row else '0'
@@ -85,6 +85,7 @@ def perform_data_interpolation(csv_file):
 
     # Interpolate missing data
     interpolated_data = interpolate_captured_data(data)
+    print(interpolated_data)
 
     # WRITE UDPDATED DATA TO A NEW CSV FILE
     header = [
