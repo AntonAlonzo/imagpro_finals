@@ -27,7 +27,7 @@ _KEYS = [
 # Default configs
 _CONFIGS = {
     'source': 1, # external web cam
-    'fps': 20.0,
+    'fps': 30.0,
     'label': 'test',
     'model': MODELS_DIR + 'yolov8n-oiv7.pt',
     'img_sz': (736, 1280),
@@ -81,11 +81,11 @@ def get_configs():
     args = parser.parse_args()
     if args.source:
         if is_int(args.source): _CONFIGS['source'] = int(args.source)
-        if _CONFIGS['source'] == 0: 
+        elif _CONFIGS['source'] == 0: 
             _CONFIGS['img_sz'] = (480, 640) # default size
-
-        if _CONFIGS['source'] == 1: 
+        elif _CONFIGS['source'] == 1: 
             _CONFIGS['img_sz'] = (736, 1280) # default size
+        else: _CONFIGS['source'] = args.source
     if args.fps:
         _CONFIGS['fps'] = float(args.fps)
     if args.label:

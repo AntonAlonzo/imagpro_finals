@@ -45,7 +45,7 @@ def display_text(frame, text, x, y):
     img = cv2.putText(
         frame,
         text,
-        (int(x) + 10, int(y) + 10),
+        (int(x) + 10, int(y) - 12),
         cv2.FONT_HERSHEY_SIMPLEX,
         2,
         (0, 0, 0),
@@ -152,7 +152,7 @@ def visualize_data(interpolated_csv, input_mp4, output_mp4_filename):
                     display_text(
                         frame, 
                         license_plate[
-                            df.iloc[row_index]['car_id']
+                            df.iloc[row_index]['lp_id']
                         ]['license_plate_number'],
                         x1, y1
                     )

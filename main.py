@@ -15,7 +15,7 @@ debug_mode = False
 lpd_model = None
 class_id = OPENIMAGESV7_VEHICLE_LICENSE_PLATE_CLASS_ID
 source = ''
-fps = 20.0
+fps = 30.0
 label = ''
 img_sz = ()
 conf = 0.1
@@ -96,7 +96,7 @@ def setup():
         # 0.8) SETUP TO SAVE A VIDEO OUTPUT WITH ANNOTATED RESULTS
         fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Codec
         input_fps = cap.get(cv2.CAP_PROP_FPS)
-        if input_fps != fps: input_fps = fps
+        if input_fps == 0.0: input_fps = fps
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         print("Recording at (fps):", input_fps)
@@ -116,14 +116,15 @@ def setup():
         if input_fps == 0.0: input_fps = fps
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        img_sz = (height, width)
+        # img_sz = (height, width)
         # 0.5) CREATE OUTPUT DIRECTORY FOR RESULTS
         create_outputs_dir()
-        # 0.6) RECORD START TIMESTAMP
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # 0.6) GET THE FILENAME OF THE VIDEO FILE
+        input_filename = source.split('/')[-1][:-4]
+        # timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         # 0.7A) READY CSV OUTPUT FILE
         csv_output_dir = create_outputs_csv_dir(label)
-        csv_filename = csv_output_dir + label + '_' + timestamp + '.csv'
+        csv_filename = csv_output_dir + input_filename + '.csv'
         write_csv({}, csv_filename, 'w')
         # 0.7B) READY FRAMES OUTPUT DIRECTORY
         # if save_to_frames: 
@@ -135,11 +136,11 @@ def setup():
         #     image_filename = images_output_dir + label + '_' + timestamp
         # 0.7D) READY VIDEO OUTPUT FILE
         videos_output_dir = create_outputs_videos_dir(label)
-        video_filename = videos_output_dir + label + '_' + timestamp + '.mp4'
-        output_mp4_filename = videos_output_dir + label + '_' + timestamp + '_output.mp4'
+        video_filename = source
+        output_mp4_filename = videos_output_dir + input_filename + '_output.mp4'
         # 0.8) SETUP TO SAVE A VIDEO OUTPUT WITH ANNOTATED RESULTS
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Codec
-        input_vid_out = cv2.VideoWriter(video_filename, fourcc, input_fps, (width, height))
+        # fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Codec
+        # input_vid_out = cv2.VideoWriter(video_filename, fourcc, input_fps, (width, height))
         return 2
     return -1
 
@@ -269,10 +270,10 @@ def execute_license_plate_recognition():
                     # Record results
                     write_csv(results, csv_filename, 'a')
             # 5.8) SAVE FRAME AS PART OF AN INPUT VIDEO
-            input_vid_out.write(frame)
+            # input_vid_out.write(frame)
             # cv2.imshow('frame', frame)
             results = {}
-    input_vid_out.release()
+    # input_vid_out.release()
     cap.release()
     cv2.destroyAllWindows()
     # Interpolate collected data
