@@ -7,7 +7,7 @@ from rcm import detectEdgeMax, detectEdgeAbs, cannyEdge
 from plate_recognition import read_license_plate
 from data_interpolation import perform_data_interpolation
 from data_visualization import visualize_data, draw_license_plate_boundary_box, display_label, display_text
-from util import create_outputs_dir, create_outputs_csv_dir, create_outputs_frames_dir, create_outputs_images_dir, create_outputs_videos_dir, write_csv
+from util import create_outputs_dir, create_outputs_csv_dir, create_outputs_frames_dir, create_outputs_images_dir, create_outputs_videos_dir, create_outputs_performance_dir, write_csv, write_performance_csv
 from configs import get_configs, get_keys, OPENIMAGESV7_VEHICLE_LICENSE_PLATE_CLASS_ID
 
 debug_mode = False
@@ -32,6 +32,8 @@ frames_filename = ''
 image_filename = ''
 video_filename = ''
 output_mp4_filename = ''
+output_img_filename = ''
+algorithm_name = ''
 
 cap = None
 input_vid_out = None
@@ -43,7 +45,7 @@ def setup():
     global lpd_model, source, fps, label, img_sz, conf, detect_edge
     global is_live, is_execute, is_record, debug_mode
     global csv_output_dir, frames_output_dir, images_output_dir, videos_output_dir
-    global csv_filename, frames_filename, image_filename, video_filename, output_mp4_filename
+    global csv_filename, frames_filename, image_filename, video_filename, output_mp4_filename, output_img_filename, algorithm_name
     global cap, input_vid_out
     configs = get_configs()
     source, fps, label, model, img_sz, conf, ed_alg_num, is_live, is_execute, is_record, debug_mode = [
@@ -52,8 +54,19 @@ def setup():
     # 0.1) INSTANTIATE LICENSE PLATE DETECTION PRE-TRAINED MODEL
     # if is_live or is_execute:
     lpd_model = YOLO(model)
-    # 0.2) CHECK IF IN DEBUG MODE
+    # 0.2) INITIALIZE EDGE DETECTION ALGORITHM TO BE USED
+    if ed_alg_num == 0:
+        detect_edge = detectEdgeMax
+        algorithm_name = 'rcm_max'
+    elif ed_alg_num == 1:
+        detect_edge = detectEdgeAbs
+        algorithm_name = 'rcm_abs'
+    elif ed_alg_num == 2:
+        detect_edge = cannyEdge
+        algorithm_name = 'canny'
+    # 0.3) CHECK IF IN DEBUG MODE
     if debug_mode == 1:
+        print(f'[DEBUG] Starting Debug mode {debug_mode}...')
         # Check using image
         lpd_model.predict(
             source=source, imgsz=img_sz,
@@ -62,6 +75,7 @@ def setup():
         # Don't continue with the program
         return False
     if debug_mode == 2:
+        print(f'[DEBUG] Starting Debug mode {debug_mode}...')
         # Check using web cam
         lpd_model.track(
             source=source, imgsz=img_sz,
@@ -69,11 +83,18 @@ def setup():
         )
         # Don't continue with the program
         return False
-    # 0.3) INITIALIZE EDGE DETECTION ALGORITHM TO BE USED
-    if ed_alg_num == 0: detect_edge = detectEdgeMax
-    elif ed_alg_num == 1: detect_edge = detectEdgeAbs
-    elif ed_alg_num == 2: detect_edge = cannyEdge
-    # 0.4) START-UP VIDEO CAPTURE DEVICE
+    if debug_mode == 3:
+        print(f'[DEBUG] Starting Debug mode {debug_mode}...')
+        # Create outputs directory
+        create_outputs_dir()
+        # Create directory for performance
+        performance_dir = create_outputs_performance_dir(label)
+        # Filenames for outputs
+        input_img_filename = source.split('/')[-1][:-4]
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_img_filename = performance_dir + input_img_filename + f'_img_output_{timestamp}.jpg'
+        csv_filename = performance_dir + input_img_filename + f'_csv_output_{timestamp}.csv'
+        return False
     print("This is source:", source)
     cap = cv2.VideoCapture(source)
     while not cap.isOpened(): print('Waiting to open device...')
@@ -305,11 +326,93 @@ def record_data():
         if cv2.waitKey(1) & 0xFF == ord('q'): break
     input_vid_out.release()
     cap.release()
-    # cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
+
+
+def image_license_plate_recognition():
+    print(f'[DEBUG] Started Debug mode {debug_mode}.')
+    # Storing results
+    results = {}
+    write_performance_csv(results, csv_filename, 'w')
+    # Source image
+    img_filename = source.split('/')[-1]
+    image = cv2.imread(source)
+    output_image = image.copy()
+    results[img_filename] = {}
+    detections = lpd_model.track(
+        output_image, imgsz=img_sz,
+        conf=conf, classes=[568]
+    )[0]
+    post_detections = []
+    detected_license = False
+    recognized_text = False
+    is_tracking = detections.boxes.is_track
+    for detection in detections.boxes.data.tolist():
+        if not detected_license: detected_license = True
+        if is_tracking:
+            x1, y1, x2, y2, track_id, score, class_id = detection
+            print(x1, y1, x2, y2, track_id, score, class_id)
+            lp_id = track_id
+        else:
+            x1, y1, x2, y2, score, class_id = detection
+            print(x1, y1, x2, y2, score, class_id)
+            lp_id = -1
+        post_detections.append([x1, y1, x2, y2, score])
+        draw_license_plate_boundary_box(output_image, x1, y1, x2, y2)
+        license_plate_crop = output_image[int(y1):int(y2), int(x1):int(x2), :]
+        lp_crop_gray = cv2.cvtColor(license_plate_crop, cv2.COLOR_BGR2GRAY)
+        # Check performance of Edge Detection Algorithm
+        start_time = datetime.now()
+        lp_crop_rcm_dip = detect_edge(lp_crop_gray) # Edge Detection algorithm
+        end_time = datetime.now()
+        cv2.imshow(f'Cropped vehicle registration/license plate of {img_filename}', lp_crop_rcm_dip)
+        delta = end_time - start_time
+        comp_time_us = delta.total_seconds() * 1000000
+        print(comp_time_us)
+        license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
+        if license_plate_text is not None:
+            recognized_text = True
+            display_label(output_image, x1, y1, x2)
+            display_text(
+                output_image, 
+                license_plate_text,
+                x1, y1
+            )
+            results[img_filename][lp_id] = {
+                'license_plate': {
+                    'bbox': [x1, y1, x2, y2],
+                    'bbox_score': score,
+                    'text': license_plate_text,
+                    'text_score': license_plate_text_score,
+                },
+                'edge_detection': {
+                    'algotrithm': algorithm_name,
+                    'time_us': '{:.4f}'.format(comp_time_us)
+                }
+            }
+            # Record results
+            write_performance_csv(results, csv_filename, 'a')
+    if detected_license and recognized_text:
+        print('Saving annotated image...')
+        cv2.imwrite(output_img_filename, output_image)
+        # cv2.imshow(img_filename, image)
+        cv2.imshow(f'Annotated {img_filename}', output_image)
+        cv2.waitKey(0)
+    else:
+        if not detected_license:
+            print('[WARNING] No vehicle registration/license plate/s found!')
+        if not recognized_text:
+            print('[WARNING] Registration/license plate/s not recognized!')
+    cv2.destroyAllWindows()
+    print(f'[DEBUG] Stopped Debug mode {debug_mode}.')
+
 
 if __name__ == "__main__":
     status = setup()
-    if status == -1:
+    if status == False and isinstance(status, bool):
+        if debug_mode == 3:
+            image_license_plate_recognition()
+    elif status == -1:
         print("An error occured!")
     elif status == 0:
         record_data()

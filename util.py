@@ -1,5 +1,5 @@
 import os
-from configs import OUTPUTS_DIR, CSV_OUTPUTS_DIR, FRAMES_OUTPUTS_DIR, IMAGES_OUTPUTS_DIR, VIDEO_OUTPUTS_DIR
+from configs import OUTPUTS_DIR, CSV_OUTPUTS_DIR, FRAMES_OUTPUTS_DIR, IMAGES_OUTPUTS_DIR, VIDEO_OUTPUTS_DIR, PERFORMANCE_OUTPUTS_DIR
 
 def create_outputs_dir():
     if not os.path.exists(OUTPUTS_DIR):
@@ -45,6 +45,17 @@ def create_outputs_videos_dir(label=None):
         if not os.path.exists(labelled_videos_output_dir):
             os.mkdir(labelled_videos_output_dir)
         return labelled_videos_output_dir
+    
+def create_outputs_performance_dir(label=None):
+    if not os.path.exists(PERFORMANCE_OUTPUTS_DIR):
+        os.mkdir(PERFORMANCE_OUTPUTS_DIR)
+        print("`%s` directory created" % (PERFORMANCE_OUTPUTS_DIR))
+    if label is not None:
+        labelled_performance_output_dir = PERFORMANCE_OUTPUTS_DIR + label + '/'
+        if not os.path.exists(labelled_performance_output_dir):
+            os.mkdir(labelled_performance_output_dir)
+        return labelled_performance_output_dir
+
 
 def write_csv(results, output_path, mode):
     with open(output_path, mode) as f:
@@ -55,6 +66,7 @@ def write_csv(results, output_path, mode):
                     'license_number', 'license_number_score'
                 )
             )
+            f.close()
             return
         print("appending to file...")
         for frame_num in results.keys():
@@ -72,5 +84,43 @@ def write_csv(results, output_path, mode):
                         results[frame_num][lp_id]['license_plate']['bbox_score'],
                         results[frame_num][lp_id]['license_plate']['text'],
                         results[frame_num][lp_id]['license_plate']['text_score']
+                    ))
+        f.close()
+
+def write_performance_csv(results, output_path, mode):
+    with open(output_path, mode) as f:
+        # headers
+        if mode == 'w':
+            f.write('{},{},{},{},{},{},{},{}\n'.format(
+                    'image_filename', 'lp_id',
+                    'license_plate_bbox', 'license_plate_bbox_score', 
+                    'license_number', 'license_number_score', 
+                    'edge_detection_type', 'edge_detection_time_us'
+                )
+            )
+            f.close()
+            return
+        # data
+        print("appending to file...")
+        for img_fname in results.keys():
+            for lp_id in results[img_fname].keys():
+                print(results[img_fname][lp_id])
+                if 'license_plate' in results[img_fname][lp_id].keys() and \
+                   'text' in results[img_fname][lp_id]['license_plate'].keys():
+                    f.write('{},{},{},{},{},{},'.format(
+                        img_fname, lp_id, '[{} {} {} {}]'.format(
+                            results[img_fname][lp_id]['license_plate']['bbox'][0],
+                            results[img_fname][lp_id]['license_plate']['bbox'][1],
+                            results[img_fname][lp_id]['license_plate']['bbox'][2],
+                            results[img_fname][lp_id]['license_plate']['bbox'][3]
+                        ),
+                        results[img_fname][lp_id]['license_plate']['bbox_score'],
+                        results[img_fname][lp_id]['license_plate']['text'],
+                        results[img_fname][lp_id]['license_plate']['text_score']
+                    ))
+                if 'edge_detection' in results[img_fname][lp_id].keys():
+                    f.write('{},{}\n'.format(
+                        results[img_fname][lp_id]['edge_detection']['algotrithm'],
+                        results[img_fname][lp_id]['edge_detection']['time_us']
                     ))
         f.close()

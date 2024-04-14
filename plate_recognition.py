@@ -12,6 +12,7 @@ dict_char_to_int = {
     'I': '1',
     'J': '3',
     'A': '4',
+    'L': '4', # TODO: perform more test to confirm this
     'G': '6',
     'S': '5'
 }
@@ -22,7 +23,8 @@ dict_int_to_char = {
     '3': 'J',       
     '4': 'A',
     '6': 'G',
-    '5': 'S'
+    '5': 'S',
+    '@': 'D' # TODO: perform more test to confirm this
 }
 
 

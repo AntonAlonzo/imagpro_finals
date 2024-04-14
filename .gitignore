@@ -1,5 +1,5 @@
 __pycache__/*
 compasses/*
-inputs/*
+# inputs/*
 outputs/*
 tests/runs/*

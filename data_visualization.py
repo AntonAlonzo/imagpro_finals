@@ -49,7 +49,7 @@ def display_text(frame, text, x, y):
         cv2.FONT_HERSHEY_SIMPLEX,
         2,
         (0, 0, 0),
-        12, cv2.LINE_AA
+        8, cv2.LINE_AA
     )
     return img
     # cv2.putText(

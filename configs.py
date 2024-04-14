@@ -9,6 +9,7 @@ CSV_OUTPUTS_DIR = OUTPUTS_DIR + 'csv/'
 FRAMES_OUTPUTS_DIR = OUTPUTS_DIR + 'frames/'
 IMAGES_OUTPUTS_DIR = OUTPUTS_DIR + 'images/'
 VIDEO_OUTPUTS_DIR = OUTPUTS_DIR + 'videos/'
+PERFORMANCE_OUTPUTS_DIR = OUTPUTS_DIR + 'performances/'
 
 _KEYS = [
     'source',
@@ -36,7 +37,7 @@ _CONFIGS = {
     'live': False,
     'execute': False,
     'record': False,
-    'debug': 0              # 0 - No debug, 1 - Image debug, 2 - Video debug
+    'debug': 0              # 0 - No debug, 1 - Image debug, 2 - Video debug, 3 - Verbose Image debug with Edge detection performance
 }
 
 def get_keys():
@@ -73,7 +74,7 @@ def get_configs():
     )
     parser.add_argument(
         "-d", "--debug",
-        choices=['0', '1', '2'],
+        choices=['0', '1', '2', '3'],
         help="Debug mode: 0 - No debug, 1 - Image debug, 2 - Video debug"
     )
 
@@ -114,7 +115,7 @@ def get_configs():
         _CONFIGS['record'] = args.record
     if args.debug:
         if is_int(args.debug): _CONFIGS['debug'] = int(args.debug)
-        if _CONFIGS['debug'] < 0 or _CONFIGS['debug'] > 2: raise Exception('Invalid debug mode')
+        if _CONFIGS['debug'] < 0 or _CONFIGS['debug'] > 3: raise Exception('Invalid debug mode')
     return _CONFIGS
 
 
