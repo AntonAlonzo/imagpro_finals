@@ -11,6 +11,7 @@ dict_char_to_int = {
     'O': '0',
     'I': '1',
     'J': '3',
+    'Z': '3',
     'A': '4',
     'L': '4', # TODO: perform more test to confirm this
     'G': '6',

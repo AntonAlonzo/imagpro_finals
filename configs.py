@@ -33,7 +33,7 @@ _CONFIGS = {
     'model': MODELS_DIR + 'yolov8n-oiv7.pt',
     'img_sz': (736, 1280),
     'conf': 0.1,
-    'edge_detec': 0,        # 0 - Max RobComp, 1 - Abs RobComp, 3 - Canny
+    'edge_detec': 0,        # 0 - Max RobComp, 1 - Abs RobComp, 2 - Canny
     'live': False,
     'execute': False,
     'record': False,

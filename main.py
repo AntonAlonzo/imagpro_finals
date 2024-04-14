@@ -64,6 +64,7 @@ def setup():
     elif ed_alg_num == 2:
         detect_edge = cannyEdge
         algorithm_name = 'canny'
+    print('Edge detection algorithm:', algorithm_name)
     # 0.3) CHECK IF IN DEBUG MODE
     if debug_mode == 1:
         print(f'[DEBUG] Starting Debug mode {debug_mode}...')
@@ -200,7 +201,6 @@ def live_license_plate_recognition():
                     lp_id = -1
                 # 5.2) APPEND THE DETECTED LICENSE PLATE TO THE LIST OF DETECTIONS FOR VIEWING
                 post_detections.append([x1, y1, x2, y2, score])
-                draw_license_plate_boundary_box(frame, x1, y1, x2, y2)
                 # 5.3) CROP THE LICENSE PLATE ONLY
                 license_plate_crop = frame[int(y1):int(y2), int(x1):int(x2), :]
                 # 5.4) CONVERT CROPPED IMAGE OF LICENSE PLATE INTO A GRAYSCALE IMAGE
@@ -210,6 +210,7 @@ def live_license_plate_recognition():
                 # 5.6) READ LICENSE PLATE
                 license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
                 # 5.7) STORE CSV RESULTS
+                draw_license_plate_boundary_box(frame, x1, y1, x2, y2)
                 if license_plate_text is not None:
                     display_label(frame, x1, y1, x2)
                     display_text(
@@ -340,7 +341,7 @@ def image_license_plate_recognition():
     output_image = image.copy()
     results[img_filename] = {}
     detections = lpd_model.track(
-        output_image, imgsz=img_sz,
+        image, imgsz=img_sz,
         conf=conf, classes=[568]
     )[0]
     post_detections = []
@@ -358,8 +359,7 @@ def image_license_plate_recognition():
             print(x1, y1, x2, y2, score, class_id)
             lp_id = -1
         post_detections.append([x1, y1, x2, y2, score])
-        draw_license_plate_boundary_box(output_image, x1, y1, x2, y2)
-        license_plate_crop = output_image[int(y1):int(y2), int(x1):int(x2), :]
+        license_plate_crop = image[int(y1):int(y2), int(x1):int(x2), :]
         lp_crop_gray = cv2.cvtColor(license_plate_crop, cv2.COLOR_BGR2GRAY)
         # Check performance of Edge Detection Algorithm
         start_time = datetime.now()
@@ -376,6 +376,7 @@ def image_license_plate_recognition():
         license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
         if license_plate_text is not None:
             recognized_text = True
+            draw_license_plate_boundary_box(output_image, x1, y1, x2, y2)
             display_label(output_image, x1, y1, x2)
             display_text(
                 output_image, 

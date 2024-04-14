@@ -158,7 +158,7 @@ def detectEdge(img, name):
 def detectEdgeAbs(img, name=None):
 
     gradients = applyMasks(img, name)
-    img_edged = np.sum(gradients, axis = 0)
+    img_edged = np.sum(gradients, axis = 0).astype(np.uint8)
 
     if name is not None:
         # write image to final folder
@@ -216,9 +216,9 @@ def detectEdgeMax(img, name=None, RCM=RCM_KERNELS):
     return img_edged
 
 def cannyEdge(img, name=None, lower_threshold=50, upper_threshold=150):
-    gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-    edges = cv.Canny(gray_img, lower_threshold, upper_threshold)
+    edges = cv.Canny(img, lower_threshold, upper_threshold)
 
     if name is not None:
         output_folder = "output/" + name
