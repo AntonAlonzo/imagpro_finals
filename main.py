@@ -208,7 +208,7 @@ def live_license_plate_recognition():
                 # 5.5) APPLY IMAGE PROCESSING TO THE CROPPED LICENSE PLATE USING THE DESIRED EDGE DETECTION ALGORITHM
                 lp_crop_rcm_dip = detect_edge(lp_crop_gray) # Edge Detection algorithm
                 # 5.6) READ LICENSE PLATE
-                license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
+                license_plate_text, license_plate_text_score, _ = read_license_plate(lp_crop_rcm_dip)
                 # 5.7) STORE CSV RESULTS
                 draw_license_plate_boundary_box(frame, x1, y1, x2, y2)
                 if license_plate_text is not None:
@@ -279,7 +279,7 @@ def execute_license_plate_recognition():
                 # 5.5) APPLY IMAGE PROCESSING TO THE CROPPED LICENSE PLATE USING THE DESIRED EDGE DETECTION ALGORITHM
                 lp_crop_rcm_dip = detect_edge(lp_crop_gray) # Edge Detection algorithm
                 # 5.6) READ LICENSE PLATE
-                license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
+                license_plate_text, license_plate_text_score, _ = read_license_plate(lp_crop_rcm_dip)
                 # 5.7) STORE CSV RESULTS
                 if license_plate_text is not None:
                     results[frame_num][lp_id] = {
@@ -373,7 +373,7 @@ def image_license_plate_recognition():
         print('Edge detection time elapsed (s):', comp_time_s)
         print('Edge detection time elapsed (ms):', comp_time_ms)
         print('Edge detection time elapsed (us):', comp_time_us)
-        license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
+        license_plate_text, license_plate_text_score, read_text = read_license_plate(lp_crop_rcm_dip)
         if license_plate_text is not None:
             recognized_text = True
             draw_license_plate_boundary_box(output_image, x1, y1, x2, y2)
@@ -383,23 +383,26 @@ def image_license_plate_recognition():
                 license_plate_text,
                 x1, y1
             )
-            results[img_filename][lp_id] = {
-                'license_plate': {
-                    'bbox': [x1, y1, x2, y2],
-                    'bbox_score': score,
-                    'text': license_plate_text,
-                    'text_score': license_plate_text_score,
-                },
-                'edge_detection': {
-                    'algotrithm': algorithm_name,
-                    'time_exp': '{:e}'.format(comp_time_ms),
-                    'time_s': '{:.4f}'.format(comp_time_s),
-                    'time_ms': '{:.4f}'.format(comp_time_ms),
-                    'time_us': '{:.4f}'.format(comp_time_us)
-                }
+            recognized_license_plate_text = license_plate_text
+        else:
+            recognized_license_plate_text = read_text
+        results[img_filename][lp_id] = {
+            'license_plate': {
+                'bbox': [x1, y1, x2, y2],
+                'bbox_score': score,
+                'text': recognized_license_plate_text,
+                'text_score': license_plate_text_score,
+            },
+            'edge_detection': {
+                'algotrithm': algorithm_name,
+                'time_exp': '{:e}'.format(comp_time_ms),
+                'time_s': '{:.4f}'.format(comp_time_s),
+                'time_ms': '{:.4f}'.format(comp_time_ms),
+                'time_us': '{:.4f}'.format(comp_time_us)
             }
-            # Record results
-            write_performance_csv(results, csv_filename, 'a')
+        }
+        # Record results
+        write_performance_csv(results, csv_filename, 'a')
     if detected_license:
         # cv2.imshow(img_filename, image)
         cv2.imshow(f'Annotated {img_filename}', output_image)
