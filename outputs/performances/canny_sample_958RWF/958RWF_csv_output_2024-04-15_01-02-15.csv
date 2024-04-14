@@ -1,0 +1,2 @@
+image_filename,lp_id,license_plate_bbox,license_plate_bbox_score,license_number,license_number_score,edge_detection_type,edge_detection_time_us
+958RWF.jpg,1.0,[449.517822265625 264.61181640625 1162.480224609375 699.656005859375],0.810910165309906,J158RJ,0.0550300118907419,canny,3.347000e+00,0.0033,3.3470,3347.0000

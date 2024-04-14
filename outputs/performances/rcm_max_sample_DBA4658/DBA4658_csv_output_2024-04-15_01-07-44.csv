@@ -1,0 +1,2 @@
+image_filename,lp_id,license_plate_bbox,license_plate_bbox_score,license_number,license_number_score,edge_detection_type,edge_detection_time_us
+DBA4658.jpg,1.0,[446.546875 339.560791015625 1159.083740234375 593.5008544921875],0.9220139384269714,DBA4658,0.6208687424659729,rcm_max,1.180000e+00,0.0012,1.1800,1180.0000

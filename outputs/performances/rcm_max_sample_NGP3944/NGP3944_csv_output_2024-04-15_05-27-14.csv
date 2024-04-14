@@ -1,0 +1,2 @@
+image_filename,lp_id,license_plate_bbox,license_plate_bbox_score,license_number,license_number_score,edge_detection_type,edge_detection_time_us
+NGP3944.jpg,1.0,[421.8477783203125 326.1531982421875 1158.382568359375 622.577392578125],0.955122709274292,NGP3944,0.9949795603752136,rcm_max,3.567000e+00,0.0036,3.5670,3567.0000

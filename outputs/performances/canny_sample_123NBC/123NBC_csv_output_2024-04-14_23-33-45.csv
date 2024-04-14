@@ -1,0 +1,2 @@
+image_filename,lp_id,license_plate_bbox,license_plate_bbox_score,license_number,license_number_score,edge_detection_type,edge_detection_time_us
+123NBC.jpg,-1,[428.01055908203125 268.4130554199219 1192.964111328125 690.6431274414062],0.5573562383651733,125IKG,0.04522191343900962,canny,1.917000e+00,0.0019,1.9170,1917.0000
