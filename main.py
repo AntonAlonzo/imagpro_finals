@@ -367,6 +367,7 @@ def image_license_plate_recognition():
         end_time = datetime.now()
         cv2.imshow(f'Cropped vehicle registration/license plate of {img_filename}', lp_crop_rcm_dip)
         delta = end_time - start_time
+        print('Time elapsed (seconds): ', delta.total_seconds())
         comp_time_us = delta.total_seconds() * 1000000
         print(comp_time_us)
         license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
@@ -392,12 +393,14 @@ def image_license_plate_recognition():
             }
             # Record results
             write_performance_csv(results, csv_filename, 'a')
-    if detected_license and recognized_text:
-        print('Saving annotated image...')
-        cv2.imwrite(output_img_filename, output_image)
+    if detected_license:
+        if recognized_text:
+            print('Saving annotated image...')
+            cv2.imwrite(output_img_filename, output_image)
         # cv2.imshow(img_filename, image)
         cv2.imshow(f'Annotated {img_filename}', output_image)
-        cv2.waitKey(0)
+        while True: 
+            if cv2.waitKey(0) or cv2.waitKey(0) & 0xFF == ord('q'): break
     else:
         if not detected_license:
             print('[WARNING] No vehicle registration/license plate/s found!')

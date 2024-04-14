@@ -35,7 +35,7 @@ def remove_whitespaces(text):
 
 
 def read_license_plate(license_plate_crop_gray):
-    detections = reader.readtext(license_plate_crop_gray)
+    detections = reader.readtext(license_plate_crop_gray, decoder='wordbeamsearch')
     cleaned_text = ''
     for detection in detections:
         bbox, text, score = detection
@@ -44,12 +44,24 @@ def read_license_plate(license_plate_crop_gray):
         cleaned_text += remove_whitespaces(text.upper())
     print(len(cleaned_text))
     print(cleaned_text)
-    if is_4w_license_format_compliant(cleaned_text):
-        return format_to_4w_license(cleaned_text), score
-    if is_2w_v1_license_format_compliant(cleaned_text):
-        return format_to_2w_v1_license(cleaned_text), score
-    if is_2w_v2_license_format_compliant(cleaned_text):
-        return format_to_2w_v2_license(cleaned_text), score
+    # if is_4w_license_format_compliant(cleaned_text):
+    #     return format_to_4w_license(cleaned_text), score
+    # if is_2w_v1_license_format_compliant(cleaned_text):
+    #     return format_to_2w_v1_license(cleaned_text), score
+    # if is_2w_v2_license_format_compliant(cleaned_text):
+    #     return format_to_2w_v2_license(cleaned_text), score
+    # Check if 4-wheel license/registration plate compliant
+    is_compliant, compliant_text = is_4w_license_format_compliant(cleaned_text)
+    if is_compliant:
+        return format_to_4w_license(compliant_text), score
+    # Check if 2-wheel license/registration plate compliant (v1)
+    is_compliant, compliant_text = is_2w_v1_license_format_compliant(cleaned_text)
+    if is_compliant:
+        return format_to_2w_v1_license(compliant_text), score
+    # Check if 2-wheel license/registration plate compliant (v2)
+    is_compliant, compliant_text = is_2w_v2_license_format_compliant(cleaned_text)
+    if is_compliant:
+        return format_to_2w_v2_license(compliant_text), score
     return None, None
 
 
@@ -65,11 +77,22 @@ def format_to_4w_license(text):
         5: dict_char_to_int, 
         6: dict_char_to_int
     }
+    # text_len = len(text)
+    # raw_text = text[:]
+    # For removing unwanted characters
+    # if text_len != 7:
+    #     for i in range(text_len):
+    #         start_ind = 0 + i
+    #         end_ind = 7 + i
+    #         substr = raw_text[start_ind:end_ind]
+    #         if is_4w_license_format_compliant(substr):
+    #             raw_text = substr
     for j in range(0,7):
         if text[j] in mapping[j].keys():
             formatted_license_plate += mapping[j][text[j]]
         else:
             formatted_license_plate += text[j]
+    print(formatted_license_plate)
     return formatted_license_plate
 
 
@@ -89,6 +112,7 @@ def format_to_2w_v1_license(text):
             formatted_license_plate += mapping[j][text[j]]
         else:
             formatted_license_plate += text[j]
+    print(formatted_license_plate)
     return formatted_license_plate
 
 
@@ -108,13 +132,28 @@ def format_to_2w_v2_license(text):
             formatted_license_plate += mapping[j][text[j]]
         else:
             formatted_license_plate += text[j]
+    print(formatted_license_plate)
     return formatted_license_plate
 
 
 def is_4w_license_format_compliant(text):
     # Four wheel vehicle format: LLL DDDD (L - letter, D - digit)
+    text_len = len(text)
+    if text_len < 7: return False, text
     if len(text) != 7:
-        return False
+        # Double check if format exists in string
+        for i in range(text_len):
+            if (6 + i) < text_len and (
+                (text[0 + i] in string.ascii_uppercase or text[0] in dict_int_to_char.keys()) and 
+                (text[1 + i] in string.ascii_uppercase or text[1] in dict_int_to_char.keys()) and
+                (text[2 + i] in string.ascii_uppercase or text[2] in dict_int_to_char.keys()) and
+                (text[3 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[3] in dict_char_to_int.keys()) and
+                (text[4 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[4] in dict_char_to_int.keys()) and
+                (text[5 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[5] in dict_char_to_int.keys()) and
+                (text[6 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[6] in dict_char_to_int.keys())
+            ):
+                return True, text[0+i:7+i]
+        return False, text
     if (
         (text[0] in string.ascii_uppercase or text[0] in dict_int_to_char.keys()) and 
         (text[1] in string.ascii_uppercase or text[1] in dict_int_to_char.keys()) and
@@ -124,14 +163,27 @@ def is_4w_license_format_compliant(text):
         (text[5] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[5] in dict_char_to_int.keys()) and
         (text[6] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[6] in dict_char_to_int.keys())
     ):
-        return True
-    return False
+        return True, text
+    return False, text
 
 
 def is_2w_v1_license_format_compliant(text):
     # Motorcycle vehicle format: DDD LLL (L - letter, D - digit)
-    if len(text) != 6:
-        return False
+    text_len = len(text)
+    if text_len < 6: return False, text
+    if text_len != 6:
+        # Double check if format exists in string
+        for i in range(text_len):
+            if (5 + i) < text_len and (
+                (text[0 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[0] in dict_char_to_int.keys()) and
+                (text[1 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[1] in dict_char_to_int.keys()) and
+                (text[2 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[2] in dict_char_to_int.keys()) and
+                (text[3 + i] in string.ascii_uppercase or text[3] in dict_int_to_char.keys()) and 
+                (text[4 + i] in string.ascii_uppercase or text[4] in dict_int_to_char.keys()) and
+                (text[5 + i] in string.ascii_uppercase or text[5] in dict_int_to_char.keys())
+            ):
+                return True, text[0+i:6+i]
+        return False, text
     if (
         (text[0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[0] in dict_char_to_int.keys()) and
         (text[1] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[1] in dict_char_to_int.keys()) and
@@ -140,14 +192,28 @@ def is_2w_v1_license_format_compliant(text):
         (text[4] in string.ascii_uppercase or text[4] in dict_int_to_char.keys()) and
         (text[5] in string.ascii_uppercase or text[5] in dict_int_to_char.keys())
     ):
-        return True
-    return False
+        return True, text
+    return False, text
 
 
 def is_2w_v2_license_format_compliant(text):
     # Motorcycle vehicle format: L DDD LL (L - letter, D - digit)
-    if len(text) != 6:
-        return False
+    text_len = len(text)
+    if text_len < 6: return False, text
+    if text_len != 6:
+        # Double check if format exists in string
+        text_len = len(text)
+        for i in range(text_len):
+            if (5 + i) < text_len and (
+                (text[0 + i] in string.ascii_uppercase or text[0] in dict_int_to_char.keys()) and 
+                (text[1 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[1] in dict_char_to_int.keys()) and
+                (text[2 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[2] in dict_char_to_int.keys()) and
+                (text[3 + i] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[3] in dict_char_to_int.keys()) and
+                (text[4 + i] in string.ascii_uppercase or text[4] in dict_int_to_char.keys()) and
+                (text[5 + i] in string.ascii_uppercase or text[5] in dict_int_to_char.keys())
+            ):
+                return True, text[0+i:6+i]
+        return False, text
     if (
         (text[0] in string.ascii_uppercase or text[0] in dict_int_to_char.keys()) and 
         (text[1] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[1] in dict_char_to_int.keys()) and
@@ -156,5 +222,5 @@ def is_2w_v2_license_format_compliant(text):
         (text[4] in string.ascii_uppercase or text[4] in dict_int_to_char.keys()) and
         (text[5] in string.ascii_uppercase or text[5] in dict_int_to_char.keys())
     ):
-        return True
-    return False
+        return True, text
+    return False, text
