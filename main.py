@@ -367,9 +367,12 @@ def image_license_plate_recognition():
         end_time = datetime.now()
         cv2.imshow(f'Cropped vehicle registration/license plate of {img_filename}', lp_crop_rcm_dip)
         delta = end_time - start_time
-        print('Time elapsed (seconds): ', delta.total_seconds())
-        comp_time_us = delta.total_seconds() * 1000000
-        print(comp_time_us)
+        comp_time_s = delta.total_seconds()
+        comp_time_ms = comp_time_s * 1000
+        comp_time_us = comp_time_s * 1000000
+        print('Edge detection time elapsed (s):', comp_time_s)
+        print('Edge detection time elapsed (ms):', comp_time_ms)
+        print('Edge detection time elapsed (us):', comp_time_us)
         license_plate_text, license_plate_text_score = read_license_plate(lp_crop_rcm_dip)
         if license_plate_text is not None:
             recognized_text = True
@@ -388,17 +391,20 @@ def image_license_plate_recognition():
                 },
                 'edge_detection': {
                     'algotrithm': algorithm_name,
+                    'time_exp': '{:e}'.format(comp_time_ms),
+                    'time_s': '{:.4f}'.format(comp_time_s),
+                    'time_ms': '{:.4f}'.format(comp_time_ms),
                     'time_us': '{:.4f}'.format(comp_time_us)
                 }
             }
             # Record results
             write_performance_csv(results, csv_filename, 'a')
     if detected_license:
+        # cv2.imshow(img_filename, image)
+        cv2.imshow(f'Annotated {img_filename}', output_image)
         if recognized_text:
             print('Saving annotated image...')
             cv2.imwrite(output_img_filename, output_image)
-        # cv2.imshow(img_filename, image)
-        cv2.imshow(f'Annotated {img_filename}', output_image)
         while True: 
             if cv2.waitKey(0) or cv2.waitKey(0) & 0xFF == ord('q'): break
     else:

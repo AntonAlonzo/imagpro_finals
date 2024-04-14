@@ -119,8 +119,11 @@ def write_performance_csv(results, output_path, mode):
                         results[img_fname][lp_id]['license_plate']['text_score']
                     ))
                 if 'edge_detection' in results[img_fname][lp_id].keys():
-                    f.write('{},{}\n'.format(
+                    f.write('{},{},{},{},{}\n'.format(
                         results[img_fname][lp_id]['edge_detection']['algotrithm'],
+                        results[img_fname][lp_id]['edge_detection']['time_exp'],
+                        results[img_fname][lp_id]['edge_detection']['time_s'],
+                        results[img_fname][lp_id]['edge_detection']['time_ms'],
                         results[img_fname][lp_id]['edge_detection']['time_us']
                     ))
         f.close()
